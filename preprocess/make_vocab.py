@@ -3,6 +3,7 @@ import numpy
 import random
 from tqdm import tqdm
 import json
+import os
 
 import torch
 from torch.utils.data.dataset import Dataset
@@ -36,7 +37,9 @@ class Lang(object):
         trian, dev, test = self.split_dataset(data, 800, 100, 1242)
         self.dump_preprocessed(trian, dev, test, self.word2index)
         index2word = {v:k for k,v in self.word2index.items()}
-        self.dump_pretrained_emb(self.word2index, index2word, self.dataset_path+'emb{}.json'.format(str(len(index2word))))
+        pretrained_emb = self.dataset_path + 'emb{}.json'.format(str(len(index2word)))
+        if not os.path.exists(pretrained_emb):
+            self.dump_pretrained_emb(self.word2index, index2word, pretrained_emb)
 
     @staticmethod
     def split_dataset(data, train_num, dev_num, test_num):
@@ -91,7 +94,4 @@ class Lang(object):
 if __name__ == '__main__':
     lang = Lang('SS-Youtube')
     lang.read_raw()
-    train, dev, test, word2index = lang.load_preprocessed()
-    for i in train:
-        print(i)
-        break
+    # train, dev, test, word2index = lang.load_preprocessed()
