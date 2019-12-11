@@ -12,7 +12,8 @@ from embeddings import GloveEmbedding, KazumaCharEmbedding
 
 
 class Lang(object):
-    def __init__(self, dataset):
+    def __init__(self, dataset, device):
+        self.device = device
         self.word2index = {'UNK': 0, 'PAD': 1}
         self.dataset = dataset
         self.dataset_path = './data/%s/' % dataset
@@ -92,6 +93,6 @@ class Lang(object):
 
 
 if __name__ == '__main__':
-    lang = Lang('SS-Youtube')
+    lang = Lang('SS-Youtube', None)
     lang.read_raw()
     # train, dev, test, word2index = lang.load_preprocessed()

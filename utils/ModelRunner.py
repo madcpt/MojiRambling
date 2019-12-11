@@ -9,13 +9,14 @@ from utils.log import Log
 class ModelRunner(object):
     model: nn.Module
 
-    def __init__(self, model_name='test', model=nn.Module):
+    def __init__(self, model_name='test', model=nn.Module, device=torch.device('cuda')):
         self.model_name = model_name
         self.model_folder = './save/%s/' % model_name
-        self.model = model
+        self.model = model.to(device)
         self.optimizer = None
         self.logger = Log(model_name, model_folder=self.model_folder, overwrite=False)
         self.loss = 0
+        self.device = device
 
     def set_optimizer(self, optimizer='Adam', lr=1e-4):
         if optimizer == 'Adam':
