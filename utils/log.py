@@ -18,9 +18,9 @@ class Log(object):
         self.f.write("*" * 50 + "\n")
         self.f.write("***%s***\n" % self.model_name)
 
-    def __del__(self):
-        self.f.close()
-        print("log file exit: bye bye")
+    # def __del__(self):
+    #     self.f.close()
+    #     print("log file exit: bye bye")
 
     def write(self, content):
         if type(content) is str:

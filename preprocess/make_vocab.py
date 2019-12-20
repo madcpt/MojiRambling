@@ -12,13 +12,15 @@ from embeddings import GloveEmbedding, KazumaCharEmbedding
 
 
 class Lang(object):
-    def __init__(self, dataset, device):
-        self.device = device
-        self.word2index = {'UNK': 0, 'PAD': 1}
+    def __init__(self, dataset, device=None):
+        self.device = device  # deprecated
+        self.PAD = 1
+        self.UNK = 0
+        self.word2index = {'UNK': self.UNK, 'PAD': self.PAD}
         self.dataset = dataset
         self.dataset_path = './data/%s/' % dataset
 
-    def read_raw(self):
+    def load_raw_data(self):
         with open(self.dataset_path + 'raw.pickle', 'rb') as f:
             content = pickle.load(f)
         raw = content['texts']
@@ -34,17 +36,22 @@ class Lang(object):
             data[i]['input'] = [self.word2index[token] for token in tokens]
             data[i]['input_lens'] = len(data[i]['input'])
         for sample in data:
-            sample['input'] = sample['input'] + ([1] * (max_len - len(sample['input'])))
-        trian, dev, test = self.split_dataset(data, 800, 100, 1242)
-        self.dump_preprocessed(trian, dev, test, self.word2index)
+            sample['input'] = sample['input'] + ([self.PAD] * (max_len - len(sample['input'])))
+        train, dev, test = self.split_dataset(data, 800, 100, 1242)
+        self.dump_preprocessed(train, dev, test, self.word2index)
         index2word = {v:k for k,v in self.word2index.items()}
         pretrained_emb = self.dataset_path + 'emb{}.json'.format(str(len(index2word)))
         if not os.path.exists(pretrained_emb):
             self.dump_pretrained_emb(self.word2index, index2word, pretrained_emb)
 
     @staticmethod
-    def split_dataset(data, train_num, dev_num, test_num):
-        assert len(data) == train_num + dev_num + test_num
+    def split_dataset(data, train_num=0, dev_num=0, test_num=0):
+        try:
+            assert len(data) == train_num + dev_num + test_num
+        except AssertionError:
+            train_num = int(0.8 * len(data))
+            test_num = int(0.1 * len(data))
+            dev_num = len(data) - train_num - test_num
         order = list(range(len(data)))
         random.shuffle(order)
         train_split = order[:train_num]
@@ -94,5 +101,5 @@ class Lang(object):
 
 if __name__ == '__main__':
     lang = Lang('SS-Youtube', None)
-    lang.read_raw()
+    lang.load_raw_data()
     # train, dev, test, word2index = lang.load_preprocessed()

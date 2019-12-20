@@ -9,7 +9,7 @@ class Encoder(nn.Module):
     def __init__(self, vocab_size):
         super(Encoder, self).__init__()
         self.vocab_size = vocab_size
-        self.encoder = nn.GRU(input_size=400, hidden_size=400, num_layers=2, batch_first=True)
+        self.encoder = nn.GRU(input_size=400, hidden_size=400, num_layers=2, batch_first=True, bidirectional=True)
         self.dropout_layer = nn.Dropout(0.1)
 
     def forward(self, input_embedding, input_lens, hidden=None):

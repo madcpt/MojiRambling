@@ -57,6 +57,8 @@ class BaseLineRunner(ModelRunner):
             inputs = batch['input'].to(self.device)
             input_lens = batch['input_lens']
             label = batch['label'].to(self.device)
+            # print(inputs.shape)
+            # print(label)
             hope = self.model(inputs, input_lens)
             l = self.loss_f(hope, label)
             self.loss += l.sum()
