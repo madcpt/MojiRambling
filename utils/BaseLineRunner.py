@@ -40,6 +40,7 @@ class BaseLineRunner(ModelRunner):
             label = batch['label'].to(self.device)
             hope = self.model(inputs, input_lens)
             l = self.loss_f(hope, label)
+            # self.loss += l.sum()
             pred = hope.argmax(dim=-1)
             epoch_loss += l.sum().item()
             epoch_hit += (pred == label).sum().item()
