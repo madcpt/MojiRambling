@@ -26,6 +26,24 @@ class ModelRunner(object):
         else:
             self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
 
+    def save_best(self, epoch=0, acc=0.0):
+        save_epoch = "{}ACC-{.4f}.params".format(self.model_folder, acc)
+        print("saving to %s" % save_epoch)
+        torch.save({'epoch': epoch,
+                    'model': self.model.state_dict(),
+                    'optimizer': self.optimizer.state_dict(),
+                    'loss': 0
+                    },
+                   save_epoch)
+
+    def load_best(self, acc=0.0, map_location=None):
+        save_epoch = "{}/ACC-{.4f}.params".format(self.model_folder, acc)
+        print("loading %s" % save_epoch)
+        checkpoint = torch.load(save_epoch, map_location=map_location)
+        self.model.load_state_dict(checkpoint['model'])
+        self.optimizer.load_state_dict(checkpoint['optimizer'])
+        print("loaded: epoch-%d loss-%.4f" % (checkpoint['epoch'], checkpoint['loss']))
+
     def save_model(self, epoch=0, loss=0.0):
         save_epoch = "{}epoch-{}.params".format(self.model_folder, str(epoch))
         print("saving to %s" % save_epoch)

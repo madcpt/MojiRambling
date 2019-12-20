@@ -22,10 +22,16 @@ class Lang(object):
 
     def load_raw_data(self):
         with open(self.dataset_path + 'raw.pickle', 'rb') as f:
-            content = pickle.load(f)
+            u = pickle._Unpickler(f)
+            u.encoding = 'latin1'
+            content = u.load()
+            # content = pickle.load(f)
         raw = content['texts']
         label = content['info']
-        data = [{'text': raw[i], 'label': label[i]['label']} for i, _ in enumerate(label)]
+        if self.dataset == 'SS-Youtube':
+            data = [{'text': raw[i], 'label': label[i]['label']} for i, _ in enumerate(label)]
+        elif self.dataset == 'PsychExp':
+            data = [{'text': raw[i], 'label': label[i]['label'].argmax()} for i, _ in enumerate(label)]
         max_len = 0
         for i, sentences in enumerate(raw):
             tokens = sentences.split(' ')
@@ -37,10 +43,16 @@ class Lang(object):
             data[i]['input_lens'] = len(data[i]['input'])
         for sample in data:
             sample['input'] = sample['input'] + ([self.PAD] * (max_len - len(sample['input'])))
-        train, dev, test = self.split_dataset(data, 800, 100, 1242)
-        self.dump_preprocessed(train, dev, test, self.word2index)
+
+        if os.path.exists(self.dataset_path + 'preprocessed.pickle') and \
+                os.path.exists(self.dataset_path + 'emb{}.json'.format(str(len(self.word2index)))):
+            return
+
+        trian, dev, test = self.split_dataset(data, 800, 100, 1242)
+        self.dump_preprocessed(trian, dev, test, self.word2index)
         index2word = {v:k for k,v in self.word2index.items()}
         pretrained_emb = self.dataset_path + 'emb{}.json'.format(str(len(index2word)))
+        # exit()
         if not os.path.exists(pretrained_emb):
             self.dump_pretrained_emb(self.word2index, index2word, pretrained_emb)
 
@@ -100,6 +112,7 @@ class Lang(object):
 
 
 if __name__ == '__main__':
-    lang = Lang('SS-Youtube', None)
-    lang.load_raw_data()
+    # lang = Lang('SS-Youtube', None)
+    lang = Lang('PsychExp', None)
+    lang.read_raw()
     # train, dev, test, word2index = lang.load_preprocessed()
