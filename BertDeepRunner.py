@@ -90,17 +90,17 @@ class BertRunner(ModelRunner):
 
 
 if __name__ == '__main__':
+    device = config.device
+    pretrain = config.mode == 'pretrain'
+    training = config.train
+
     lang = Lang('SS-Youtube', config.device)
     # lang = Lang('SS-Twitter', config.device)
     # lang = Lang('PsychExp', config.device)
-    # lang = Lang('data1_170000', config.device)
-    # lang.read_raw()
+    lang.load_preprocessed()
     train, dev, test, word2index = lang.load_preprocessed(batch_size=8)
 
-    runner = BertRunner('bert', model=BertDeep(len(word2index), 'SS-Youtube', 2))
-    # runner = BertRunner('baseline', model=BertEnc(len(word2index), 'SS-Twitter', True, False, 2))
-    # runner = BertRunner('bert', model=BertDeep(len(word2index), 'PsychExp', True, False, 7))
-    # runner = BertRunner('bert', model=BertEnc(len(word2index), 'data1_170000', True, False, 1791))
+    runner = BertRunner('bertmoji', model=BertDeep(len(word2index), 'SS-Youtube', 2))
 
     runner.set_optimizer(1e-7)
     # runner.save_model(0, 0)

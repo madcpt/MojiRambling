@@ -13,9 +13,11 @@ from utils.ModelRunner import ModelRunner
 # from model.BaseLine import BaseLine as moji
 from model.deepmoji import DeepMoji as moji
 # from preprocess.make_vocab import Lang as dataset
+from preprocess.pre_processing import Lang as lang
 from preprocess.pre_processing import origin_dataset as dataset
 from preprocess.transfer_vocab import transfer_vocab
 import torch
+from utils.config import config
 
 from tqdm import tqdm
 
@@ -80,56 +82,38 @@ class BaseLineRunner(ModelRunner):
 
 
 if __name__ == '__main__':
-    device = torch.device('cuda:0')
+    device = config.device
+    pretrain = config.mode == 'pretrain'
+    training = config.train
 
-    # lang = dataset('data1_170000', device)
-    # # lang = transfer_vocab('SS-Youtube', device)
-    # # lang.load_origin_vocab()
-    # # lang = Lang('PsychExp', device)
-    # # lang.read_raw()
-    # train, dev, test, word2index = lang.load_preprocessed(64)
-    #
-    # # runner = BaseLineRunner('deepmoji', model=moji(len(word2index), load_emb=True, emb_fixed=False, dim=400),
-    # # device=device)
-    # runner = BaseLineRunner('deepmoji_pretrain', model=moji(len(word2index), load_emb=True, emb_fixed=False, dim=400), device=device)
-    # runner.load_model(epoch=3, load_path='./save/deepmoji_pretrain')
-    #
-    # # # runner = BaseLineRunner('baseline', model=BaseLine(len(word2index), 'SS-Youtube', True, False), device=device)
-    # # runner = BaseLineRunner('baseline', model=BaseLine(len(word2index), 'PsychExp', True, False, 7), device=device)
-    #
-    # runner.set_optimizer(1e-4)
-    # # runner.save_model(0, 0)
-    # runner.evaluate_epoch(dev, 0, 'dev')
-    # runner.evaluate_epoch(test, 0, 'test')
-    # for epoch in range(20):
-    #     train, dev, test, _ = lang.load_preprocessed(128)
-    #     runner.train_epoch(train, epoch)
-    #     runner.evaluate_epoch(dev, epoch, 'dev')
-    #     runner.evaluate_epoch(test, epoch, 'test')
+    if pretrain:
+        lang = dataset('data1_170000', device)
+        lang.read_raw_data()
+        train, dev, test, word2index = lang.load_preprocessed(64)
+        runner = BaseLineRunner('deepmoji', model=moji(len(word2index), load_emb=False, emb_fixed=False, dim=400, classes=1791), device=device)
+    else:
+        lang = transfer_vocab('SS-Youtube', device)
+        # lang = Lang('PsychExp', device)
+        lang.load_origin_vocab()
+        train, dev, test = lang.load_from_preprocessed(64)
+        runner = BaseLineRunner('deepmoji_transfer', model=moji(len(lang.word2index), load_emb=False, emb_fixed=False, dim=400, classes=2), device=device)
+        if training:
+            runner.load_model(epoch=16, load_path='./save/deepmoji_pretrain')
+            runner.model.classifier = nn.Linear(9*400, 2)
+            runner.model.classifier.weight.data.normal_(0, 0.1)
+            runner.model.classifier.bias.data.normal_(0, 0.1)
+            # pass
+        else:
+            runner.load_model(epoch=21, load_path='./save/deepmoji_transfer')
 
-
-    # lang = dataset('data1_170000', device)
-    lang = transfer_vocab('SS-Youtube', device)
-    lang.load_origin_vocab()
-    # lang = Lang('PsychExp', device)
-    # lang.read_raw()
-    train, dev, test = lang.load_from_preprocessed(64)
-
-    # runner = BaseLineRunner('deepmoji', model=moji(len(word2index), load_emb=True, emb_fixed=False, dim=400),
-    # device=device)
-    runner = BaseLineRunner('deepmoji_transfer', model=moji(len(lang.word2index), load_emb=False, emb_fixed=False, dim=400, classes=1791), device=device)
-    # runner.load_model(epoch=98, load_path='./save/deepmoji_transfer')
-    runner.load_model(epoch=16, load_path='./save/deepmoji_pretrain')
-    runner.model.classifier = nn.Linear(9*400, 2)
-    runner.model.classifier.weight.data.normal_(0, 0.1)
-    runner.model.classifier.bias.data.normal_(0, 0.1)
-
-    runner.set_optimizer(1e-0)
-    # runner.save_model(0, 0)
-    # runner.evaluate_epoch(dev, 0, 'dev')
-    runner.evaluate_epoch(test, 0, 'test')
-    for epoch in range(100):
-        train, dev, test = lang.load_from_preprocessed(128)
-        runner.train_epoch(train, epoch)
-        # runner.evaluate_epoch(dev, epoch, 'dev')
-        runner.evaluate_epoch(test, epoch, 'test')
+    if training:
+        runner.set_optimizer(1e-0)
+        # runner.save_model(0, 0)
+        # runner.evaluate_epoch(dev, 0, 'dev')
+        for epoch in range(100):
+            train, dev, test = lang.load_from_preprocessed(128)
+            runner.train_epoch(train, epoch)
+            runner.train_epoch(test, epoch)
+            runner.evaluate_epoch(test, epoch, 'test')
+    else:
+        runner.evaluate_epoch(test, 0, 'test')

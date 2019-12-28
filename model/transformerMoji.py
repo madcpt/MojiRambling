@@ -97,7 +97,7 @@ class DeepMoji(nn.Module):
         self.dropout_layer = nn.Dropout(0.1)
         self.dim = dim
         self.rnn_hidden = dim
-        self.positional_embedding = PositionalEncoder(self.dim, 100)
+        self.positional_embedding = PositionalEncoder(self.dim, 200)
         self.encoder1 = Encoder(vocab_size, dim=dim, rnn_hidden=self.rnn_hidden)
         self.encoder2 = Encoder(vocab_size, dim=self.rnn_hidden, rnn_hidden=self.rnn_hidden)
         self.word_embedding = nn.Embedding(vocab_size, self.dim)
@@ -122,12 +122,15 @@ class DeepMoji(nn.Module):
         inputs = inputs[:, :max(input_lens)]
         input_embedding = self.word_embedding(inputs)
         # input_embedding = self.positional_embedding(input_embedding)
+        # print(input_embedding)
         src_mask = generate_src_mask(input_embedding, input_lens)
         # print(input_embedding.shape)
         output1, _ = self.encoder1(input_embedding, input_lens, src_mask)  # hidden: [n*bi, bsz, hidden]
+        # output1 = output1.masked_fill(torch.isnan(output1), 0)
         output1 = output1.transpose(1, 0).contiguous()
         # print(output1.shape)
         output2, _ = self.encoder2(output1, input_lens, src_mask)  # hidden: [n*bi, bsz, hidden]
+        # output2 = output2.masked_fill(torch.isnan(output2), 0)
         output2 = output2.transpose(1, 0).contiguous()
         # print(output2.shape)
         # output = torch.cat([output[-1], output[-2]], dim=-1)
