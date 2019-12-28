@@ -18,7 +18,7 @@ class ModelRunner(object):
         self.loss = 0
         self.device = device
 
-    def set_optimizer(self, optimizer='Adam', lr=1e-4):
+    def set_optimizer(self, optimizer='Adam', lr=1e-5):
         if optimizer == 'Adam':
             self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
         elif optimizer == 'SGD':
@@ -54,13 +54,22 @@ class ModelRunner(object):
                     },
                    save_epoch)
 
-    def load_model(self, epoch=0, map_location=None):
-        save_epoch = "{}/epoch-{}.params".format(self.model_folder, str(epoch))
+    def load_model(self, epoch=0, map_location=None, load_path=None):
+        """
+        :type load_path: ./save/deepmoji_pretrain
+        """
+        if load_path is None:
+            save_epoch = "{}/epoch-{}.params".format(self.model_folder, str(epoch))
+        else:
+            save_epoch = "{}/epoch-{}.params".format(load_path, str(epoch))
         print("loading %s" % save_epoch)
         checkpoint = torch.load(save_epoch, map_location=map_location)
         self.model.load_state_dict(checkpoint['model'])
-        self.optimizer.load_state_dict(checkpoint['optimizer'])
-        print("loaded: epoch-%d loss-%.4f" % (checkpoint['epoch'], checkpoint['loss']))
+        try:
+            self.optimizer.load_state_dict(checkpoint['optimizer'])
+        except:
+            pass
+        print("loaded: epoch-",  checkpoint['epoch'])
 
     def optimize(self, clip=5):
         self.loss.backward()

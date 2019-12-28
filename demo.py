@@ -42,9 +42,10 @@ if __name__ == '__main__':
 
     # Convert token to vocabulary indices
     indexed_tokens = tokenizer.convert_tokens_to_ids(tokenized_text)
+    # indexed_tokens = [indexed_tokens, indexed_tokens]
     # Define sentence A and B indices associated to 1st and 2nd sentences (see paper)
-    # segments_ids = [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1]
-    segments_ids = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    segments_ids = [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1]
+    # segments_ids = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
     # Convert inputs to PyTorch tensors
     tokens_tensor = torch.tensor([indexed_tokens])
@@ -67,3 +68,4 @@ if __name__ == '__main__':
         print(hid.shape)
     # We have a hidden states for each of the 12 layers in model bert-base-uncased
     assert len(encoded_layers) == 12
+    print(model.device)

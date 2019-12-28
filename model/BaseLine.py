@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from model.Encoder import Encoder
+from model.deepmoji import Encoder
 import os
 import json
 

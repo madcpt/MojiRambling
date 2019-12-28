@@ -28,10 +28,13 @@ class Lang(object):
             # content = pickle.load(f)
         raw = content['texts']
         label = content['info']
-        if self.dataset == 'SS-Youtube':
+        if self.dataset == 'SS-Youtube' or self.dataset == 'SS-Twitter':
             data = [{'text': raw[i], 'label': label[i]['label']} for i, _ in enumerate(label)]
         elif self.dataset == 'PsychExp':
             data = [{'text': raw[i], 'label': label[i]['label'].argmax()} for i, _ in enumerate(label)]
+        else:
+            print('provide dataset')
+            exit()
         max_len = 0
         for i, sentences in enumerate(raw):
             tokens = sentences.split(' ')
@@ -44,12 +47,14 @@ class Lang(object):
         for sample in data:
             sample['input'] = sample['input'] + ([self.PAD] * (max_len - len(sample['input'])))
 
-        if os.path.exists(self.dataset_path + 'preprocessed.pickle') and \
-                os.path.exists(self.dataset_path + 'emb{}.json'.format(str(len(self.word2index)))):
-            return
+        train, dev, test = self.split_dataset(data, 800, 100, 11)
+        if os.path.exists(self.dataset_path + 'preprocessed.pickle'):
+            with open(self.dataset_path + 'preprocessed.pickle', 'rb') as f:
+                pre_word2index = pickle.load(f)['word2index']
+                if all([pre_word2index[word] == self.word2index[word] for word in self.word2index.keys()]):
+                    print('Reproduce Train, Dev, Test')
+                    self.dump_preprocessed(train, dev, test, self.word2index)
 
-        trian, dev, test = self.split_dataset(data, 800, 100, 1242)
-        self.dump_preprocessed(trian, dev, test, self.word2index)
         index2word = {v:k for k,v in self.word2index.items()}
         pretrained_emb = self.dataset_path + 'emb{}.json'.format(str(len(index2word)))
         # exit()
@@ -61,8 +66,8 @@ class Lang(object):
         try:
             assert len(data) == train_num + dev_num + test_num
         except AssertionError:
-            train_num = int(0.8 * len(data))
-            test_num = int(0.1 * len(data))
+            train_num = int(0.5 * len(data))
+            test_num = int(0.5 * len(data)) - 1
             dev_num = len(data) - train_num - test_num
         order = list(range(len(data)))
         random.shuffle(order)
@@ -79,20 +84,21 @@ class Lang(object):
         with open(self.dataset_path + 'preprocessed.pickle', 'wb') as f:
             pickle.dump(dump_object, f)
 
+    @staticmethod
+    def make_dataloader(data, batch_size, shuffle=True):
+        for sample in data:
+            sample['input'] = torch.tensor(sample['input'])
+        dataset = DataLoader(data, batch_size, shuffle=shuffle)
+        return dataset
+
     def load_preprocessed(self, batch_size=4):
         with open(self.dataset_path + 'preprocessed.pickle', 'rb') as f:
             preprocessed = pickle.load(f)
         self.word2index = preprocessed['word2index']
 
-        def make_dataloader(data):
-            for sample in data:
-                sample['input'] = torch.tensor(sample['input'])
-            dataset = DataLoader(data, batch_size, shuffle=True)
-            return dataset
-
-        train = make_dataloader(preprocessed['train'])
-        dev = make_dataloader(preprocessed['dev'])
-        test = make_dataloader(preprocessed['test'])
+        train = self.make_dataloader(preprocessed['train'], batch_size)
+        dev = self.make_dataloader(preprocessed['dev'], batch_size)
+        test = self.make_dataloader(preprocessed['test'], batch_size)
         return train, dev, test, self.word2index
 
     # dump_path: data/emb{}.json
@@ -112,7 +118,10 @@ class Lang(object):
 
 
 if __name__ == '__main__':
-    # lang = Lang('SS-Youtube', None)
-    lang = Lang('PsychExp', None)
-    lang.read_raw()
-    # train, dev, test, word2index = lang.load_preprocessed()
+    lang = Lang('SS-Youtube', None)
+    # lang = Lang('SS-Twitter', None)
+    # lang = Lang('PsychExp', None)
+    # lang.load_raw_data()
+    train, dev, test, word2index = lang.load_preprocessed()
+    for t in train:
+        print(t)

@@ -68,7 +68,7 @@ class Encoder(nn.Module):
 
 
 class DeepMoji(nn.Module):
-    def __init__(self, vocab_size, dataset='data1_170000', load_emb=True, emb_fixed=False, dim=256):
+    def __init__(self, vocab_size, dataset='data1_170000', load_emb=True, emb_fixed=False, dim=256, classes=1791):
         super(DeepMoji, self).__init__()
         self.dataset = dataset
         self.dropout_layer = nn.Dropout(0.1)
@@ -92,7 +92,7 @@ class DeepMoji(nn.Module):
 
         self.attn = Attention(9 * self.dim)
 
-        self.classfier = nn.Linear(self.dim*9, 1791)
+        self.classfier = nn.Linear(self.dim*9, classes)
 
     def forward(self, inputs, input_lens):
         inputs = inputs[:, :max(input_lens)]
