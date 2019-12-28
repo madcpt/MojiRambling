@@ -3,7 +3,7 @@
 ## Configuration
 **IMPORTANT:** make sure that you are using python>=3.6
 
-`pip install reqiurements.txt`
+`pip install -r reqiurements.txt`
 
 ## Pretrained Model
 You can download the previous three models pretrained with **EMO_hash** dataset from https://drive.google.com/file/d/1xrTmI6pHEvqrvJWq6E3HLpd6bx_EbZ1I/view?usp=sharing.
