@@ -130,7 +130,7 @@ class DeepMoji(nn.Module):
         output1 = output1.transpose(1, 0).contiguous()
         # print(output1.shape)
         output2, _ = self.encoder2(output1, input_lens, src_mask)  # hidden: [n*bi, bsz, hidden]
-        # output2 = output2.masked_fill(torch.isnan(output2), 0)
+        #installation output2 = output2.masked_fill(torch.isnan(output2), 0)
         output2 = output2.transpose(1, 0).contiguous()
         # print(output2.shape)
         # output = torch.cat([output[-1], output[-2]], dim=-1)

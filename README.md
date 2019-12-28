@@ -37,7 +37,7 @@ testing:
 `python3 TransformerMojiRunner.py -mode=transfer -n=2 -cuda=1 -ds=SS-Youtube -model=transformermoji -train=0`
 
 ## Glove-Moji (proposed)
-**Note:** First time you run this code, it may take a very long time, because the program will download Glove Embedding 
+**Note:** The first time you run this code, it may take a very long time, because the program will download Glove Embedding 
 source file from a server in Stanford.
 
 pretrain: 
@@ -50,14 +50,14 @@ testing:
 `python3 GloveMojiRunner.py -mode=transfer -n=2 -cuda=1 -ds=SS-Youtube -model=glovemoji -train=0`
 
 ## Bert-Moji (proposed)
-**Note:** First time you run this code, it may take a very long time, because the program will download BERT pretrained 
+**Note:** The first time you run this code, it may take a very long time, because the program will download BERT pretrained 
 model from Google Drive.
 
 fine-tune: 
 `python3 BertRunner.py -mode=transfer -n=2 -cuda=1 -ds=SS-Youtube -model=bert -train=1`
 
 ## BertDeep-Moji (proposed)
-**Note:** First time you run this code, it may take a very long time, because the program will download BERT pretrained 
+**Note:** The first time you run this code, it may take a very long time, because the program will download BERT pretrained 
 model from Google Drive.
 
 fine-tune: 
